@@ -5,6 +5,13 @@ from tqdm import tqdm
 import torch.nn as nn
 import torch.optim as optim
 from model import UNET
+from utils import (
+    load_checkpoint,
+    save_checkpoint,
+    get_loaders,
+    check_accuracy,
+    save_predictions_as_imgs,
+)
 
 #Hyperparameters
 LEARNING_RATE = 1e-4
@@ -69,6 +76,26 @@ def main():
             ToTensorV2(),
         ],
     )
+
+    model = UNET(in_channels=3 , out_channels= 1).to(DEVICE)
+    loss_fn = nn.BCEWithLogitsLoss() # binary cross entropy
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+    train_loader  , val_loader = get_loaders(
+        TRAIN_IMG_DIR,
+        TRAIN_MASK_DIR,
+        VAL_IMG_DIR,
+        VAL_MASK_DIR,
+        BATCH_SIZE,
+        train_transform,
+        val_transforms,
+        NUM_WORKERS,
+        PIN_MEMORY
+    )
+
+    scaler = torch.cuda.amp.GradScaler()
+    for epoch in range(NUM_EPOCHS):
+        train_fn(train_loader, model , optimizer , loss_fn , scaler)
 
 if __name__ == '__main__':
     main()
