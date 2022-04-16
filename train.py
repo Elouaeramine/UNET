@@ -93,6 +93,9 @@ def main():
         PIN_MEMORY
     )
 
+    if LOAD_MODEL:
+        load_checkpoint(torch.load("my_checkpoint.pth.tar"), model)
+
     scaler = torch.cuda.amp.GradScaler()
     for epoch in range(NUM_EPOCHS):
         train_fn(train_loader, model , optimizer , loss_fn , scaler)
